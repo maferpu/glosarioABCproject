@@ -9,9 +9,6 @@
     <title>Glosario ABC · Libro Interactivo</title>
 
     <style>
-        /* =========================================
-           1. RESET GENERAL Y CONTENEDOR RAIZ
-        ========================================= */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -28,9 +25,7 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        /* =========================================
-           2. ESTRUCTURA Y MARCOS DE PANTALLA
-        ========================================== */
+        /* VISOR Y ALINEACIÓN */
         .viewer {
             width: 100vw;
             height: 100vh;
@@ -38,7 +33,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 15px;
+            padding: 10px;
         }
 
         .header {
@@ -70,26 +65,24 @@
             background: rgba(0, 0, 0, 0.7);
         }
 
+        /* CONTENEDOR DEL LIBRO RESTRINGIDO */
         .book-wrapper {
             width: 100%;
             height: 100%;
-            max-width: 1000px;
-            max-height: 78vh;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
         }
 
-        /* =========================================
-           3. ESTILOS DE PÁGINA LIMPIOS (SIN SOLAPAMIENTO)
-        ========================================== */
+        /* PÁGINAS Y LIENZO */
         .flip-book {
             box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
+            margin: auto;
         }
 
         .page {
-            background-color: #1e1e1e;
+            background-color: #ffffff;
             overflow: hidden;
             width: 100%;
             height: 100%;
@@ -98,18 +91,16 @@
         .page img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: fill; /* Escala la imagen exacto al tamaño de la hoja */
             display: block;
             user-select: none;
             pointer-events: none;
         }
 
-        /* =========================================
-           4. CONTROLES INFERIORES
-        ========================================== */
+        /* CONTROLES */
         .controls {
             position: fixed;
-            bottom: 12px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 50;
@@ -147,9 +138,7 @@
             opacity: 0.9;
         }
 
-        /* =========================================
-           5. PANTALLA DE CARGA Y PANTALLA DE ROTACIÓN
-        ========================================== */
+        /* CARGA Y AVISOS */
         .loading {
             position: fixed;
             inset: 0;
@@ -227,47 +216,32 @@
             100% { transform: rotate(0deg); }
         }
 
-        /* =========================================
-           6. RESPONSIVE CELULAR HORIZONTAL / VERTICAL
-        ========================================== */
         @media screen and (max-width: 768px) and (orientation: portrait) {
             .rotate-message { display: flex; }
             .viewer { display: none; }
-        }
-
-        @media screen and (max-width: 950px) and (orientation: landscape) {
-            .viewer { padding: 5px; }
-            .book-wrapper { max-height: 68vh; }
-            .controls { bottom: 5px; padding: 3px 10px; }
-            .control-button { width: 28px; height: 28px; font-size: 12px; }
-            .header { top: 5px; right: 8px; }
-            .fullscreen-button { width: 30px; height: 30px; font-size: 13px; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- AVISO ROTACIÓN DE PANTALLA -->
     <section class="rotate-message" id="rotateMessage">
         <div class="rotate-icon">📱</div>
         <h2>Gira tu dispositivo</h2>
         <p>Para disfrutar mejor del libro interactivo, coloca tu teléfono en posición horizontal.</p>
     </section>
 
-    <!-- CARGA -->
     <section class="loading" id="loading">
         <div class="loader"></div>
         <div class="loading-text">Cargando libro...</div>
     </section>
 
-    <!-- VISOR PRINCIPAL -->
     <main class="viewer" id="viewer">
         <header class="header">
             <button class="fullscreen-button" id="fullscreenButton" aria-label="Pantalla completa">⛶</button>
         </header>
 
-        <section class="book-wrapper">
+        <section class="book-wrapper" id="bookWrapper">
             <div id="book" class="flip-book"></div>
         </section>
 
@@ -278,7 +252,6 @@
         </nav>
     </main>
 
-    <!-- LIBRERÍA PAGE FLIP -->
     <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 
     <script>
@@ -319,19 +292,45 @@
             pageCounter.textContent = `${pagina} / ${totalPaginas}`;
         }
 
+        function calcularDimensiones() {
+            // Calculamos el espacio disponible dejando espacio libre para los controles
+            const availWidth = window.innerWidth - 60;
+            const availHeight = window.innerHeight - 100;
+            
+            // Proporción por hoja (400x600 -> 0.666)
+            const aspectRatioPage = 0.666; 
+
+            // El pliego completo de 2 páginas tiene una proporción de ~1.333
+            let height = availHeight;
+            let width = height * aspectRatioPage;
+
+            // Si el ancho de las 2 páginas supera la pantalla, ajustamos según el ancho
+            if ((width * 2) > availWidth) {
+                width = (availWidth / 2);
+                height = width / aspectRatioPage;
+            }
+
+            return {
+                width: Math.floor(width),
+                height: Math.floor(height)
+            };
+        }
+
         function iniciarLibro() {
             try {
+                const dims = calcularDimensiones();
+
                 pageFlip = new St.PageFlip(bookElement, {
-                    width: 400,
-                    height: 600,
-                    size: "contain",
-                    minWidth: 150,
-                    maxWidth: 1000,
-                    minHeight: 225,
+                    width: dims.width,
+                    height: dims.height,
+                    size: "fixed", // "fixed" para evitar que St.PageFlip descalibre los límites
+                    minWidth: 100,
+                    maxWidth: 800,
+                    minHeight: 150,
                     maxHeight: 1200,
                     maxShadowOpacity: 0.35,
                     showCover: true,
-                    flippingTime: 650,
+                    flippingTime: 600,
                     usePortrait: false,
                     startPage: 0,
                     mobileScrollSupport: false
@@ -345,9 +344,9 @@
 
                 actualizarContador(0);
             } catch (error) {
-                console.error("Error inicializando el flipbook:", error);
+                console.error("Error al iniciar flipbook:", error);
             } finally {
-                setTimeout(ocultarCarga, 400);
+                setTimeout(ocultarCarga, 300);
             }
         }
 
@@ -394,18 +393,23 @@
             } else {
                 fullscreenButton.textContent = "⛶";
             }
-            if (pageFlip) {
-                setTimeout(() => pageFlip.update(), 150);
-            }
         });
 
+        // Recalcular si se cambia el tamaño de la ventana
+        let resizeTimeout;
         window.addEventListener("resize", () => {
-            if (pageFlip) {
-                pageFlip.update();
-            }
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (pageFlip) {
+                    const dims = calcularDimensiones();
+                    pageFlip.updateFromSettings({
+                        width: dims.width,
+                        height: dims.height
+                    });
+                }
+            }, 200);
         });
 
-        // Espera a la carga total del DOM y assets para prevenir descalibres
         window.addEventListener("load", () => {
             crearPaginas();
             iniciarLibro();
