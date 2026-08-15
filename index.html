@@ -81,22 +81,20 @@
             position: relative;
         }
 
-        /* Solución para parpadeo/páginas invisibles en PC */
         .flip-book {
             transform-style: preserve-3d;
             backface-visibility: hidden;
         }
 
         /* =========================================
-           ESTRUCTURA DE PÁGINAS (Fix renderizado PC)
+           ESTRUCTURA DE PÁGINAS
         ========================================== */
         .page {
-            background-color: #222; /* Fondo de respaldo si tarda en cargar */
+            background-color: #222;
             overflow: hidden;
             position: relative;
             width: 100%;
             height: 100%;
-            /* Aceleración por GPU para evitar fallos al retroceder */
             transform: translateZ(0);
             will-change: transform;
         }
@@ -104,7 +102,7 @@
         .page img {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Mantiene la proporción sin deformar ni recortar */
+            object-fit: contain;
             display: block;
             user-select: none;
             -webkit-user-drag: none;
@@ -172,6 +170,7 @@
         .loading.hidden {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
         .loader {
@@ -237,20 +236,19 @@
         }
 
         /* =========================================
-           AJUSTES RESPONSIVOS (Solución recorte Mobile)
+           AJUSTES RESPONSIVOS
         ========================================== */
         @media screen and (max-width: 768px) and (orientation: portrait) {
             .rotate-message { display: flex; }
             .viewer { display: none; }
         }
 
-        /* Ajuste clave cuando el celular está horizontal */
         @media screen and (max-width: 950px) and (orientation: landscape) {
             .viewer {
                 padding: 5px;
             }
             .book-container {
-                max-height: 70vh; /* Ocupa menos alto para no recortarse con los botones */
+                max-height: 70vh;
             }
             .controls {
                 bottom: 5px;
@@ -321,6 +319,12 @@
 
         let pageFlip = null;
 
+        function ocultarCarga() {
+            if (loading) {
+                loading.classList.add("hidden");
+            }
+        }
+
         function crearPaginas() {
             for (let i = 1; i <= totalPaginas; i++) {
                 const page = document.createElement("div");
@@ -329,11 +333,6 @@
                 const image = document.createElement("img");
                 image.src = `${i}.jpg`;
                 image.alt = `Página ${i} del Glosario ABC`;
-                
-                // Carga nativa para evitar cuelgues
-                if (i > 4) {
-                    image.loading = "lazy";
-                }
 
                 page.appendChild(image);
                 bookElement.appendChild(page);
@@ -346,36 +345,36 @@
         }
 
         function iniciarLibro() {
-            // Ajuste dinámico de dimensiones base según pantalla
-            const esMovil = window.innerWidth <= 900;
-            
-            pageFlip = new St.PageFlip(bookElement, {
-                width: esMovil ? 300 : 400,      // Reducimos ancho base en celular
-                height: esMovil ? 450 : 600,     // Reducimos alto base en celular
-                size: "contain",                 // "contain" evita que se recorte en bordes
-                minWidth: 150,
-                maxWidth: 1000,
-                minHeight: 225,
-                maxHeight: 1200,
-                maxShadowOpacity: 0.4,
-                showCover: true,
-                flippingTime: 600,
-                usePortrait: false,
-                startPage: 0,
-                mobileScrollSupport: false
-            });
+            try {
+                pageFlip = new St.PageFlip(bookElement, {
+                    width: 400,
+                    height: 600,
+                    size: "contain",
+                    minWidth: 150,
+                    maxWidth: 1000,
+                    minHeight: 225,
+                    maxHeight: 1200,
+                    maxShadowOpacity: 0.4,
+                    showCover: true,
+                    flippingTime: 600,
+                    usePortrait: false,
+                    startPage: 0,
+                    mobileScrollSupport: false
+                });
 
-            pageFlip.loadFromHTML(document.querySelectorAll(".page"));
+                pageFlip.loadFromHTML(document.querySelectorAll(".page"));
 
-            pageFlip.on("flip", (event) => {
-                actualizarContador(event.data);
-            });
+                pageFlip.on("flip", (event) => {
+                    actualizarContador(event.data);
+                });
 
-            actualizarContador(0);
-
-            setTimeout(() => {
-                loading.classList.add("hidden");
-            }, 400);
+                actualizarContador(0);
+            } catch (e) {
+                console.error("Error al iniciar PageFlip:", e);
+            } finally {
+                // Se oculta la pantalla de carga sí o sí después de iniciar
+                setTimeout(ocultarCarga, 600);
+            }
         }
 
         previousButton.addEventListener("click", () => {
@@ -421,17 +420,16 @@
             } else {
                 fullscreenButton.textContent = "⛶";
             }
-            // Re-calcula dimensiones al cambiar a pantalla completa
-            setTimeout(() => {
-                if (pageFlip) pageFlip.update();
-            }, 200);
+            if (pageFlip) {
+                setTimeout(() => pageFlip.update(), 200);
+            }
         });
 
-        // Recarga suave al cambiar de orientación para recalcular el lienzo perfecto
-        window.addEventListener("orientationchange", () => {
-            setTimeout(() => {
-                window.location.reload();
-            }, 300);
+        // Reajuste limpio de tamaño al cambiar la orientación del móvil
+        window.addEventListener("resize", () => {
+            if (pageFlip) {
+                pageFlip.update();
+            }
         });
 
         document.addEventListener("DOMContentLoaded", () => {
