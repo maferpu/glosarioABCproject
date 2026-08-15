@@ -10,15 +10,16 @@
 
     <style>
         /* =========================================
-           CONFIGURACIÓN GENERAL
+           1. RESET GENERAL Y CONTENEDOR RAIZ
         ========================================= */
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html, body {
-            margin: 0;
-            padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
@@ -28,38 +29,35 @@
         }
 
         /* =========================================
-           VISOR PRINCIPAL
+           2. ESTRUCTURA Y MARCOS DE PANTALLA
         ========================================== */
         .viewer {
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 20px;
+            padding: 15px;
         }
 
-        /* =========================================
-           BOTÓN PANTALLA COMPLETA
-        ========================================== */
         .header {
             position: fixed;
-            top: 15px;
-            right: 20px;
+            top: 12px;
+            right: 15px;
             z-index: 50;
         }
 
         .fullscreen-button {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border: none;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0, 0, 0, 0.4);
             border-radius: 50%;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
-            opacity: 0.8;
+            opacity: 0.85;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
@@ -69,76 +67,75 @@
         .fullscreen-button:hover {
             opacity: 1;
             transform: scale(1.08);
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.7);
         }
 
-        /* =========================================
-           CONTENEDOR DEL LIBRO (Flex & Contenido Contenido)
-        ========================================== */
-        .book-container {
+        .book-wrapper {
             width: 100%;
             height: 100%;
             max-width: 1000px;
-            max-height: 80vh;
+            max-height: 78vh;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
         }
 
-        #book {
-            box-shadow: 0 15px 45px rgba(0,0,0,0.6);
+        /* =========================================
+           3. ESTILOS DE PÁGINA LIMPIOS (SIN SOLAPAMIENTO)
+        ========================================== */
+        .flip-book {
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.5);
         }
 
-        /* =========================================
-           PÁGINAS
-        ========================================== */
         .page {
-            background: transparent;
+            background-color: #1e1e1e;
             overflow: hidden;
+            width: 100%;
+            height: 100%;
         }
 
         .page img {
             width: 100%;
             height: 100%;
-            object-fit: fill;
+            object-fit: contain;
             display: block;
             user-select: none;
-            -webkit-user-drag: none;
+            pointer-events: none;
         }
 
         /* =========================================
-           CONTROLES INFERIORES
+           4. CONTROLES INFERIORES
         ========================================== */
         .controls {
             position: fixed;
-            bottom: 15px;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 50;
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 6px 14px;
+            padding: 6px 16px;
             border-radius: 40px;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
         }
 
         .control-button {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border: none;
             border-radius: 50%;
-            background: rgba(255,255,255,0.15);
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .control-button:hover {
-            background: rgba(255,255,255,0.3);
+            background: rgba(255, 255, 255, 0.3);
             transform: scale(1.05);
         }
 
@@ -151,7 +148,7 @@
         }
 
         /* =========================================
-           PANTALLA DE CARGA
+           5. PANTALLA DE CARGA Y PANTALLA DE ROTACIÓN
         ========================================== */
         .loading {
             position: fixed;
@@ -162,18 +159,19 @@
             align-items: center;
             justify-content: center;
             background: #181818;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
         }
 
         .loading.hidden {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
 
         .loader {
             width: 35px;
             height: 35px;
-            border: 3px solid rgba(255,255,255,0.15);
+            border: 3px solid rgba(255, 255, 255, 0.15);
             border-top-color: white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -190,9 +188,6 @@
             to { transform: rotate(360deg); }
         }
 
-        /* =========================================
-           AVISO PARA CELULAR VERTICAL
-        ========================================== */
         .rotate-message {
             position: fixed;
             inset: 0;
@@ -207,21 +202,21 @@
         }
 
         .rotate-icon {
-            font-size: 50px;
-            margin-bottom: 20px;
+            font-size: 48px;
+            margin-bottom: 15px;
             animation: rotatePhone 2s ease-in-out infinite;
         }
 
         .rotate-message h2 {
-            margin: 0 0 10px;
+            margin: 0 0 8px;
             font-size: 18px;
             font-weight: 500;
         }
 
         .rotate-message p {
             margin: 0;
-            max-width: 260px;
-            line-height: 1.5;
+            max-width: 250px;
+            line-height: 1.4;
             font-size: 13px;
             opacity: 0.7;
         }
@@ -233,23 +228,27 @@
         }
 
         /* =========================================
-           RESPONSIVE MOBILE / PORTRAIT
+           6. RESPONSIVE CELULAR HORIZONTAL / VERTICAL
         ========================================== */
-        @media screen and (max-width: 700px) and (orientation: portrait) {
+        @media screen and (max-width: 768px) and (orientation: portrait) {
             .rotate-message { display: flex; }
             .viewer { display: none; }
         }
 
-        @media screen and (max-width: 700px) and (orientation: landscape) {
-            .book-container { max-height: 72vh; }
-            .controls { bottom: 8px; }
+        @media screen and (max-width: 950px) and (orientation: landscape) {
+            .viewer { padding: 5px; }
+            .book-wrapper { max-height: 68vh; }
+            .controls { bottom: 5px; padding: 3px 10px; }
+            .control-button { width: 28px; height: 28px; font-size: 12px; }
+            .header { top: 5px; right: 8px; }
+            .fullscreen-button { width: 30px; height: 30px; font-size: 13px; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- AVISO ROTACIÓN -->
+    <!-- AVISO ROTACIÓN DE PANTALLA -->
     <section class="rotate-message" id="rotateMessage">
         <div class="rotate-icon">📱</div>
         <h2>Gira tu dispositivo</h2>
@@ -268,7 +267,7 @@
             <button class="fullscreen-button" id="fullscreenButton" aria-label="Pantalla completa">⛶</button>
         </header>
 
-        <section class="book-container">
+        <section class="book-wrapper">
             <div id="book" class="flip-book"></div>
         </section>
 
@@ -294,7 +293,14 @@
 
         let pageFlip = null;
 
+        function ocultarCarga() {
+            if (loading) {
+                loading.classList.add("hidden");
+            }
+        }
+
         function crearPaginas() {
+            bookElement.innerHTML = "";
             for (let i = 1; i <= totalPaginas; i++) {
                 const page = document.createElement("div");
                 page.className = "page";
@@ -302,11 +308,6 @@
                 const image = document.createElement("img");
                 image.src = `${i}.jpg`;
                 image.alt = `Página ${i} del Glosario ABC`;
-                image.draggable = false;
-
-                if (i !== 1) {
-                    image.loading = "lazy";
-                }
 
                 page.appendChild(image);
                 bookElement.appendChild(page);
@@ -319,33 +320,35 @@
         }
 
         function iniciarLibro() {
-            pageFlip = new St.PageFlip(bookElement, {
-                width: 400,
-                height: 600,
-                size: "stretch",
-                minWidth: 200,
-                maxWidth: 1000,
-                minHeight: 300,
-                maxHeight: 1200,
-                maxShadowOpacity: 0.35,
-                showCover: true,
-                flippingTime: 650,
-                usePortrait: false, // Mantiene la estructura de doble página
-                startPage: 0,
-                mobileScrollSupport: false
-            });
+            try {
+                pageFlip = new St.PageFlip(bookElement, {
+                    width: 400,
+                    height: 600,
+                    size: "contain",
+                    minWidth: 150,
+                    maxWidth: 1000,
+                    minHeight: 225,
+                    maxHeight: 1200,
+                    maxShadowOpacity: 0.35,
+                    showCover: true,
+                    flippingTime: 650,
+                    usePortrait: false,
+                    startPage: 0,
+                    mobileScrollSupport: false
+                });
 
-            pageFlip.loadFromHTML(document.querySelectorAll(".page"));
+                pageFlip.loadFromHTML(document.querySelectorAll(".page"));
 
-            pageFlip.on("flip", (event) => {
-                actualizarContador(event.data);
-            });
+                pageFlip.on("flip", (event) => {
+                    actualizarContador(event.data);
+                });
 
-            actualizarContador(0);
-
-            setTimeout(() => {
-                loading.classList.add("hidden");
-            }, 500);
+                actualizarContador(0);
+            } catch (error) {
+                console.error("Error inicializando el flipbook:", error);
+            } finally {
+                setTimeout(ocultarCarga, 400);
+            }
         }
 
         previousButton.addEventListener("click", () => {
@@ -391,15 +394,19 @@
             } else {
                 fullscreenButton.textContent = "⛶";
             }
+            if (pageFlip) {
+                setTimeout(() => pageFlip.update(), 150);
+            }
         });
 
-        window.addEventListener("orientationchange", () => {
-            setTimeout(() => {
-                if (pageFlip) window.location.reload();
-            }, 300);
+        window.addEventListener("resize", () => {
+            if (pageFlip) {
+                pageFlip.update();
+            }
         });
 
-        document.addEventListener("DOMContentLoaded", () => {
+        // Espera a la carga total del DOM y assets para prevenir descalibres
+        window.addEventListener("load", () => {
             crearPaginas();
             iniciarLibro();
         });
